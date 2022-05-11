@@ -1,0 +1,7 @@
+# Situation
+A cron job that cleans up some assets (SES Templates) failed, and we started hitting the account limit for that asset. There were so many (20,000+ per account) that the AWS console could not load a view of them. It was necessary to start deleting, but ensure that we would not delete any asset possibly in use (creation time of T-minus one day). Serially getting 1-10 assets at a time and checking their date before making another blocking API call was taking very long
+# Resolution
+- instead of getting individual records, get a boto3 [`Paginator`](https://boto3.amazonaws.com/v1/documentation/api/latest/guide/paginators.html) object. Perform client-side filtering of the records in the pages
+- offload the IO-expensive delete operations (limited to one record per call) to Python's async event loop. Run each call as a coroutine and use `asyncio.gather` to execute them concurrently. (anecdata zone) We appear to be exceeding the one API call per second limitation with this script. However, this was not subjected to a real benchmark and by how much was not measured
+### Implementation details
+The script assumes that it is being run on a system with an instance profile that has sufficient permissions. To run locally, or to override the default profile, pass a profile name to the argument `--profile` and the user's ~/.aws/credentials file will be checked for session credentials under that profile
