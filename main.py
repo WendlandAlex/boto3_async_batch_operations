@@ -63,8 +63,10 @@ async def batch_operation(object_name_list, operation='get_template'):
     awaitable = await asyncio.gather(*[single_operation(object_name, operation) for object_name in object_name_list])
     return awaitable
 
+
 # quickly get a big list of all the objects and apply client-side filtering
 # for future: can accept a StartingToken if the page is already known
+#
 def iterate(paginator=paginator, starting_token=args.starting_token):
     filtered_object_list = []
 
